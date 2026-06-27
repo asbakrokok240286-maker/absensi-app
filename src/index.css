@@ -1,0 +1,83 @@
+```react
+import React, { useState, useMemo, useRef } from 'react';
+import { 
+  Users, Calendar, Clock, Download, Upload, LogOut, 
+  Camera, Settings, FileText, MapPin, Filter
+} from 'lucide-react';
+
+export default function App() {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [employees, setEmployees] = useState([{ id: 'KAR-001', name: 'Edi Suwanda', position: 'SVP', location: 'Tanjung Gading' }]);
+  const [shiftTypes, setShiftTypes] = useState([
+    { code: 'P', startTime: '07:00', endTime: '15:00', label: 'Pagi' },
+    { code: '2', startTime: '15:00', endTime: '23:00', label: 'Siang' },
+    { code: 'H', startTime: '00:00', endTime: '00:00', label: 'Off/Libur' },
+    { code: 'S', startTime: '23:00', endTime: '07:00', label: 'Malam' },
+  ]);
+  const [schedules, setSchedules] = useState({}); 
+  const [attendances, setAttendances] = useState([{ id: '1', empId: 'KAR-001', date: new Date().toISOString().split('T')[0], timeIn: '07:05:12', status: 'Hadir' }]); 
+  const [scheduleImage, setScheduleImage] = useState(null);
+
+  const handleEmpLogin = (id) => {
+    const emp = employees.find(e => e.id === id.toUpperCase());
+    if (emp) {
+      setCurrentUser({ ...emp, role: 'employee' });
+    } else {
+      alert('ID Karyawan tidak ditemukan.');
+    }
+  };
+
+  const handleAdminLogin = () => {
+    const pass = prompt("Masukkan Password Admin:");
+    if (pass === 'admin456231') {
+      setCurrentUser({ role: 'admin', name: 'Administrator' });
+    } else {
+      alert('Password salah!');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans">
+      {!currentUser ? (
+        <LoginScreen onEmpLogin={handleEmpLogin} onAdminTrigger={handleAdminLogin} />
+      ) : currentUser.role === 'admin' ? (
+        <AdminDashboard employees={employees} setEmployees={setEmployees} shiftTypes={shiftTypes} setShiftTypes={setShiftTypes} schedules={schedules} setSchedules={setSchedules} attendances={attendances} scheduleImage={scheduleImage} setScheduleImage={setScheduleImage} onLogout={() => setCurrentUser(null)} />
+      ) : (
+        <EmployeeDashboard user={currentUser} shiftTypes={shiftTypes} schedules={schedules[currentUser.id] || {}} attendances={attendances} setAttendances={setAttendances} onLogout={() => setCurrentUser(null)} />
+      )}
+    </div>
+  );
+}
+
+function LoginScreen({ onEmpLogin, onAdminTrigger }) {
+  const [idInput, setIdInput] = useState('');
+  const [clickCount, setClickCount] = useState(0);
+
+  const handleLogoClick = () => {
+    const newCount = clickCount + 1;
+    setClickCount(newCount);
+    if (newCount >= 3) {
+      onAdminTrigger();
+      setClickCount(0);
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-center min-h-screen p-4">
+      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm text-center border border-slate-100">
+        <div onClick={handleLogoClick} className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg cursor-pointer hover:bg-blue-700 transition-all">
+          <Clock className="text-white w-8 h-8" />
+        </div>
+        <h1 className="text-xl font-bold text-slate-800 mb-6">Portal Absensi Karyawan</h1>
+        <form onSubmit={(e) => { e.preventDefault(); onEmpLogin(idInput); }} className="space-y-4">
+          <input type="text" placeholder="Masukkan ID Karyawan" className="w-full px-4 py-3 border rounded-lg outline-none text-center font-semibold" value={idInput} onChange={(e) => setIdInput(e.target.value)} required />
+          <button type="submit" className="w-full bg-slate-800 text-white font-semibold py-3 rounded-lg hover:bg-black transition-colors">Masuk</button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ... (Komponen AdminDashboard, AdminLaporan, dan EmployeeDashboard lainnya tetap sama seperti sebelumnya)
+
+```
